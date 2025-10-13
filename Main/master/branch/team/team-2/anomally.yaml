@@ -1,0 +1,15 @@
+test:
+ test: true
+  train: false
+  val: false
+  predict: false
+  test_split: test
+  batch_size: 32
+  num_workers: 4
+  shuffle: false
+  pin_memory: true
+  drop_last: false
+  persistent_workers: true
+  collate_fn: null
+  sampler: null
+  seed: 42
