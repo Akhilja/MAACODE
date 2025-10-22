@@ -1,0 +1,27 @@
+Sub CombineAndRemoveDuplicates()
+    Dim wsYesterday As Worksheet, wsToday As Worksheet, wsProgress As Worksheet
+    Dim lastRowY As Long, lastRowT As Long, lastRowP As Long
+    
+    Set wsYesterday = ThisWorkbook.Sheets("Yesterday")
+    Set wsToday = ThisWorkbook.Sheets("Today")
+    Set wsProgress = ThisWorkbook.Sheets("Progress")
+    
+    ' Clear existing data in Progress A column
+    wsProgress.Columns("A").ClearContents
+    
+    ' Find last rows
+    lastRowY = wsYesterday.Cells(wsYesterday.Rows.Count, "A").End(xlUp).Row
+    lastRowT = wsToday.Cells(wsToday.Rows.Count, "A").End(xlUp).Row
+    
+    ' Copy Yesterday A
+    wsYesterday.Range("A1:A" & lastRowY).Copy wsProgress.Range("A1")
+    
+    ' Copy Today A
+    wsToday.Range("A1:A" & lastRowT).Copy wsProgress.Cells(wsProgress.Rows.Count, "A").End(xlUp).Offset(1)
+    
+    ' Remove duplicates
+    lastRowP = wsProgress.Cells(wsProgress.Rows.Count, "A").End(xlUp).Row
+    wsProgress.Range("A1:A" & lastRowP).RemoveDuplicates Columns:=1, Header:=xlNo
+    
+    MsgBox "Progress sheet updated successfully!"
+End Sub
