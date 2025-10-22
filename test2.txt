@@ -1,0 +1,66 @@
+Sub DailyUpdateProcess()
+    Dim answer As VbMsgBoxResult
+    Dim wsYesterday As Worksheet, wsToday As Worksheet
+    Dim sharepointPath As String
+    Dim srcWB As Workbook, srcWS As Worksheet
+    Dim destWB As Workbook, destWS As Worksheet
+    Dim lastRow As Long
+
+    Application.ScreenUpdating = False
+    Application.DisplayAlerts = False
+
+    ' 🔹 Set sheet references
+    Set wsYesterday = ThisWorkbook.Sheets("Yesterday")
+    Set wsToday = ThisWorkbook.Sheets("Today")
+
+    ' 🔹 Ask user if they want to update Yesterday sheet
+    answer = MsgBox("Do you want to update Yesterday's sheet with today's data?", vbYesNo + vbQuestion, "Update Yesterday?")
+
+    If answer = vbYes Then
+        ' Clear old Yesterday data
+        wsYesterday.Cells.Clear
+
+        ' Copy all used data from Today to Yesterday
+        wsToday.UsedRange.Copy Destination:=wsYesterday.Range("A1")
+
+        MsgBox "Yesterday sheet updated successfully!", vbInformation
+    Else
+        MsgBox "Skipped updating Yesterday sheet.", vbInformation
+    End If
+
+    ' 🔹 Now fetch data from SharePoint
+    sharepointPath = "https://companyname.sharepoint.com/sites/ProjectName/Shared Documents/MasterObject.xlsx" ' 🔸 Change this path
+
+    ' Open SharePoint workbook (read-only)
+    On Error Resume Next
+    Set srcWB = Workbooks.Open(sharepointPath, ReadOnly:=True)
+    On Error GoTo 0
+
+    If srcWB Is Nothing Then
+        MsgBox "Error opening SharePoint file. Please check the path or connection.", vbCritical
+        GoTo Cleanup
+    End If
+
+    ' Set source and destination sheets
+    Set srcWS = srcWB.Sheets("MasterObject")
+    Set destWB = ThisWorkbook
+    Set destWS = destWB.Sheets("Today")
+
+    ' Clear Today sheet before importing new data
+    destWS.Cells.Clear
+
+    ' Find last row in source file
+    lastRow = srcWS.Cells(srcWS.Rows.Count, "A").End(xlUp).Row
+
+    ' Copy all data
+    srcWS.Range("A1").Resize(lastRow, srcWS.UsedRange.Columns.Count).Copy destWS.Range("A1")
+
+    ' Close source workbook
+    srcWB.Close SaveChanges:=False
+
+    MsgBox "Today's sheet updated with data from SharePoint successfully!", vbInformation
+
+Cleanup:
+    Application.ScreenUpdating = True
+    Application.DisplayAlerts = True
+End Sub
