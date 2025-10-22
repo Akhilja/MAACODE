@@ -1,6 +1,8 @@
 Sub DailyUpdateProcess()
     Dim answer As VbMsgBoxResult
+    Dim backupAnswer As VbMsgBoxResult
     Dim wsYesterday As Worksheet, wsToday As Worksheet
+    Dim wsBackup As Worksheet
     Dim sharepointPath As String
     Dim srcWB As Workbook, srcWS As Worksheet
     Dim destWB As Workbook, destWS As Worksheet
@@ -18,7 +20,30 @@ Sub DailyUpdateProcess()
     answer = MsgBox("Do you want to update Yesterday's sheet with today's data?", vbYesNo + vbQuestion, "Update Yesterday?")
 
     If answer = vbYes Then
-        ' Clear old Yesterday data
+        
+        ' 🔹 Ask for backup before clearing
+        backupAnswer = MsgBox("Do you want to backup Yesterday's sheet before clearing?", vbYesNo + vbQuestion, "Backup Yesterday?")
+        
+        If backupAnswer = vbYes Then
+            ' Delete old backup if exists
+            On Error Resume Next
+            Set wsBackup = ThisWorkbook.Sheets("bkp_Yesterday")
+            If Not wsBackup Is Nothing Then
+                wsBackup.Delete
+            End If
+            On Error GoTo 0
+            
+            ' Create new backup sheet
+            Set wsBackup = ThisWorkbook.Sheets.Add(After:=ThisWorkbook.Sheets(ThisWorkbook.Sheets.Count))
+            wsBackup.Name = "bkp_Yesterday"
+            
+            ' Copy all data from Yesterday to backup
+            wsYesterday.UsedRange.Copy Destination:=wsBackup.Range("A1")
+            
+            MsgBox "Backup created in sheet 'bkp_Yesterday'.", vbInformation
+        End If
+
+        ' 🔹 Clear old Yesterday data
         wsYesterday.Cells.Clear
 
         ' Copy all used data from Today to Yesterday
