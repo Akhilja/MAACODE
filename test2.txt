@@ -5,6 +5,7 @@ Sub DailyUpdateProcess()
     Dim srcWB As Workbook, srcWS As Worksheet
     Dim destWB As Workbook, destWS As Worksheet
     Dim lastRow As Long
+    Dim ws As Worksheet
 
     Application.ScreenUpdating = False
     Application.DisplayAlerts = False
@@ -41,8 +42,22 @@ Sub DailyUpdateProcess()
         GoTo Cleanup
     End If
 
-    ' Set source and destination sheets
+    ' 🔹 Try to set the source sheet (and list available ones if not found)
+    On Error Resume Next
     Set srcWS = srcWB.Sheets("MasterObject")
+    On Error GoTo 0
+
+    If srcWS Is Nothing Then
+        MsgBox "Sheet 'MasterObject' not found. Listing all available sheets in the Immediate Window (Ctrl+G to view).", vbExclamation
+        Debug.Print "Available sheets in " & srcWB.Name & ":"
+        For Each ws In srcWB.Sheets
+            Debug.Print " - " & ws.Name
+        Next ws
+        srcWB.Close SaveChanges:=False
+        GoTo Cleanup
+    End If
+
+    ' 🔹 Set destination
     Set destWB = ThisWorkbook
     Set destWS = destWB.Sheets("Today")
 
